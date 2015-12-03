@@ -1,0 +1,11 @@
+#chessboard {
+    display: inline-block;
+    width: 660px;
+    float: left;
+}
+
+#datainput {
+    display: inline-block;
+    left: 60px;
+    float: top;
+}

@@ -1,12 +1,38 @@
 <!DOCTYPE html>
+<!-- http://www.clker.com/cliparts/c/b/8/6/11949911991537719366chess_set_symbols_igor_k_01.svg.med.png -->
 <html>
     <head>
         <meta charset="utf-8">
         <title>Set Title Later</title>
+        <link rel="stylesheet" type="text/css" href="styles.css">
     </head>
     <body role="document">
-        <canvas id = "canvas1" width = "600" height = "600" style = "border: 1px solid black"></canvas>
-        <h3>TEST</h3>
+        <div id="wrapper">
+            <div id="chessboard">
+                <canvas id = "canvas" width = "640" height = "640" style = "border: 1px solid black"></canvas>
+                <h3>Chess Notation Reader</h3>
+                <img id="kingblack" src="kb.png" alt='King Black'/>
+                <img id="kingwhite" src="kw.png" alt='King White'/>
+                <img id="queenblack" src="qb.png" alt='Queen Black'/>
+                <img id="queenwhite" src="qw.png" alt='Queen White'/>
+                <img id="rookblack" src="rb.png" alt='Rook Black'/>
+                <img id="rookwhite" src="rw.png" alt='Rook White'/>
+                <img id="bishopblack" src="bb.png" alt='Bishop Black'/>
+                <img id="bishopwhite" src="bw.png" alt='Bishop White'/>
+                <img id="knightblack" src="nb.png" alt='Knight Black'/>
+                <img id="knightwhite" src="nw.png" alt='Knight White'/>
+                <img id="pawnblack" src="pb.png" alt='Pawn Black'/>
+                <img id="pawnwhite" src="pw.png" alt='Pawn White'/>
+            </div>
+            <div id="datainput">
+                    <h2>Enter the notation here:</h2>
+                    <textarea rows="30" cols = "10" name="game-notation" id="notation-id"></textarea><br />
+                    <input type="submit" onclick="getNotation()">
+                    <h2>Click the buttons to advance the game</h2>
+                    <input type="button" value="Previous" id="prevmove" onclick="previousMove()"/>
+                    <input type="button" value="  Next  " id="nextmove" onclick="nextMove()"/>
+            </div>
+        </div>
         <script src="scripts.js"></script>
     </body>
 </html>
