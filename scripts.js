@@ -5,6 +5,7 @@ var turns, moves = [], moveNum = 0;
 //board[0][0] = a8 (topright)
 //board[1][2] = b6 ([file][rank])
 var file = "abcdefgh";
+var cols = "ABCDEFGH";
 var rank = "12345678";
 
 //white then black
@@ -32,7 +33,6 @@ var piecePosOrig = [[4,7], [4,0], [3,7], [3,0],
                 [4,1], [5,1], [6,1], [7,1]];
 
 function makeBoard() {
-    var cols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
     for(var r=0; r<8; r++){
         for(var c=0; c<8; c++){
             if(r%2 ? !(c%2) : c%2){ //brown
@@ -109,8 +109,102 @@ function clearSquare(c, r){
     }
 }
 
-fuction getPiece(piece, src, dest){ //returns index in piecePos
+function getPiece(piece, src, destFile, destRank, isEaten){ //returns index in piecePos
+    var upper, lower, x;
+    //get list of possible pieces to move [lower, upper)
+    switch(piece){
+        case 0: lower = 0; upper = 2; break; //king
+        case 1: lower = 2; upper = 4; break; //queen
+        case 2: lower = 4; upper = 8; break; //rook
+        case 3: lower = 8; upper = 12; break; //bishop
+        case 4: lower = 12; upper = 16; break; //knight
+        case 5: lower = 16; upper = 32; break; //pawn
+    }
 
+    //filter out color
+    if(moveNum % 2){ //black
+        lower += (upper-lower)/2;
+    } else {
+        upper -= (upper-lower)/2;
+    }
+
+    console.log("lower:"+lower+" upper:"+upper+" piece:"+piece);
+    console.log("dest:"+[destFile, destRank]+" lower:"+piecePos[lower]+" upper:"+piecePos[upper-1]);
+    //if a src is given
+    if(src[0] >= 0){ //file
+        for(x=lower; x<upper; x++){
+            if(piecePos[x][0] == src[0]) return x;
+        }
+    } else if(src[1] >= 0){ //rank
+        for(x=lower; x<upper; x++){
+            if(piecePos[x][1] == src[1]) return x;
+        }
+    }
+
+    switch(piece){
+        case 0: //king
+        case 1: return lower; //queen
+        case 2: //rook
+            for(x=lower; x<upper; x++){
+                if(piecePos[x][0] == destFile ? piecePos[x][1] != destRank : piecePos[x][1] != destRank){
+                    return x;
+                }
+            }/*
+            if(piecePos[lower][0] == destFile ? piecePos[lower][1] != destRank : piecePos[lower][1] != destRank){
+                return lower;
+            } else if(piecePos[upper][0] == destFile ? piecePos[upper][1] != destRank : piecePos[upper][1] != destRank){
+                return upper;
+            }*/
+            break;
+        case 3: //bishop
+            for(x=lower; x<upper; x++){
+                if(Math.abs(piecePos[x][0] - destFile) == Math.abs(piecePos[x][1] - destRank)){
+                    return x;
+                }
+            }/*
+            if(Math.abs(piecePos[lower][0] - destFile) == Math.abs(piecePos[lower][1] - destRank)){
+                return lower;
+            } else if(Math.abs(piecePos[upper][0] - destFile) == Math.abs(piecePos[upper][1] - destRank)){
+                return upper;
+            }*/
+            break;
+        case 4: //knight
+            for(x=lower; x<upper; x++){
+                if((Math.abs(piecePos[x][0] - destFile) == 2 && Math.abs(piecePos[x][1] - destRank) == 1)
+                    || (Math.abs(piecePos[x][0] - destFile) == 1 && Math.abs(piecePos[x][1] - destRank) == 2)){
+                    return x;
+                }
+            }/*
+            if((Math.abs(piecePos[lower][0] - destFile) == 2 && Math.abs(piecePos[lower][1] - destRank) == 1)
+                || (Math.abs(piecePos[lower][0] - destFile) == 1 && Math.abs(piecePos[lower][1] - destRank) == 2)){
+                return lower;
+            } else if((Math.abs(piecePos[upper][0] - destFile) == 2 && Math.abs(piecePos[upper][1] - destRank) == 1)
+                || (Math.abs(piecePos[upper][0] - destFile) == 1 && Math.abs(piecePos[upper][1] - destRank) == 2)){
+                return upper-1;
+            }*/
+            break;
+        case 5: //pawn
+            for(var x=lower; x<upper; x++){
+                if(isEaten){ //diagonal
+                    if((destRank - piecePos[x][1] == moveNum%2 ? 1 : -1) && Math.abs(piecePos[x][0] - destFile) == 1){
+                        return x;
+                    }
+                } else {
+                    if(piecePos[x][1] == moveNum%2 ? 1 : 6){
+                        //first move
+                        if((destRank - piecePos[x][1] < moveNum%2 ? 3 : -3) && (piecePos[x][0] == destFile)){
+                            return x;
+                        }
+                    } else {
+                        if((destRank - piecePos[x][1] == moveNum%2 ? 1 : -1) && (piecePos[x][0] == destFile)){
+                            return x;
+                        }
+                    }
+                }
+            }
+    }
+
+    return -1;
 }
 
 function getNotation(){
@@ -178,14 +272,27 @@ function nextMove(){
                 for(var x=0; x<piecePos.length; x++){
                     if(piecePos[x][0] == destFile && piecePos[x][1] == 7-destRank) break;
                 }
-                piecePos[x].push(1);
-                console.log(piecePos[x]);
-                //clear the box
-                clearSquare(piecePos[x][0], piecePos[x][1]);
+                if(x < piecePos.length){
+                    piecePos[x].push(1);
+                    console.log(piecePos[x]);
+                    //clear the box
+                    clearSquare(piecePos[x][0], piecePos[x][1]);
+                } else {
+                    console.log('No piece');
+                }
             }
 
             //get the exact piece to move (-1 if invalid move)
-            var piecetomove = getPiece(piece, [srcFile, srcRank], [destFile, destRank]);
+            var piecetomove = getPiece(piece, [srcFile, srcRank], destFile, 7-destRank, isEaten);
+            console.log(piecetomove);
+            console.log(piecePos[piecetomove]);
+            if(piecetomove < 0){
+                console.log("Invalid move");
+            } else {
+                clearSquare(piecePos[piecetomove][0], piecePos[piecetomove][1]);
+                piecePos[piecetomove][0] = destFile;
+                piecePos[piecetomove][1] = 7-destRank;
+            }
         } else { //castle
             console.log("castle");
         }
