@@ -218,12 +218,12 @@ function getNotation(){
     }
     console.log(moves);
 }
-
+/*
 function previousMove(){
     //var notation = document.getElementById("notation-id").value;
     console.log("Previous");
 }
-
+*/
 function nextMove(){
     //var notation = document.getElementById("notation-id").value;
     if(moveNum >= moves.length){
