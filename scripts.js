@@ -53,13 +53,13 @@ function makeBoard() {
     }
 }
 
-function drawPieces(pieces) {
+function drawPieces() {
     var img;
-    for(var r=0; r<pieces.length; r++){
-        if(pieces[r].length > 2){ //eaten
+    for(var r=0; r<piecePos.length; r++){
+        if(piecePos[r][0] < 0 && piecePos[r][1] < 0){ //eaten
             continue;
         }
-        if(r < 16){ //pieces
+        if(r < 16){ //piecePos
             switch(Math.floor(r/4)){
                 case 0: //queen / king
                     if(r < 2){ //king
@@ -78,10 +78,10 @@ function drawPieces(pieces) {
                     img = document.getElementById(r < 14 ? "knightwhite" : "knightblack");
                     break;
             }
-            ctx.drawImage(img, pieces[r][0]*80 + 10, pieces[r][1]*80 + 10);
+            ctx.drawImage(img, piecePos[r][0]*80 + 10, piecePos[r][1]*80 + 10);
         } else { //pawns
             img = document.getElementById(r < 24 ? "pawnwhite" : "pawnblack");
-            ctx.drawImage(img, pieces[r][0]*80 + 10, pieces[r][1]*80 + 10);
+            ctx.drawImage(img, piecePos[r][0]*80 + 10, piecePos[r][1]*80 + 10);
         }
     }
 }
@@ -92,14 +92,17 @@ g3 Qg5
 Nf3 Qxg3+
 hxg3 Bxg3#*/
 function resetBoard() {
-    makeBoard();
-    drawPieces(piecePosOrig);
     for(var x=0; x<piecePos.length; x++){
         piecePos[x][0] = piecePosOrig[x][0];
         piecePos[x][1] = piecePosOrig[x][1];
     }
+    makeBoard();
+    drawPieces();
     moveNum = 0;
 }
+
+resetBoard();
+window.onload = resetBoard();
 
 function clearSquare(c, r){
     if(r%2 ? !(c%2) : c%2){ //brown
@@ -107,6 +110,8 @@ function clearSquare(c, r){
     } else { //grey
         ctx.fillStyle = "#DBDBDB";
     }
+    console.log("Clearing ("+(c*80)+", "+(r*80)+")");
+    ctx.clearRect(c*80, r*80, 80, 80);
     ctx.fillRect(c*80, r*80, 80, 80);
     ctx.font = "15px Droid Sans";
     ctx.fillStyle =  "#000000";
@@ -158,24 +163,14 @@ function getPiece(piece, src, destFile, destRank, isEaten){ //returns index in p
                 if(piecePos[x][0] == destFile ? piecePos[x][1] != destRank : piecePos[x][1] != destRank){
                     return x;
                 }
-            }/*
-            if(piecePos[lower][0] == destFile ? piecePos[lower][1] != destRank : piecePos[lower][1] != destRank){
-                return lower;
-            } else if(piecePos[upper][0] == destFile ? piecePos[upper][1] != destRank : piecePos[upper][1] != destRank){
-                return upper;
-            }*/
+            }
             break;
         case 3: //bishop
             for(x=lower; x<upper; x++){
                 if(Math.abs(piecePos[x][0] - destFile) == Math.abs(piecePos[x][1] - destRank)){
                     return x;
                 }
-            }/*
-            if(Math.abs(piecePos[lower][0] - destFile) == Math.abs(piecePos[lower][1] - destRank)){
-                return lower;
-            } else if(Math.abs(piecePos[upper][0] - destFile) == Math.abs(piecePos[upper][1] - destRank)){
-                return upper;
-            }*/
+            }
             break;
         case 4: //knight
             for(x=lower; x<upper; x++){
@@ -183,19 +178,12 @@ function getPiece(piece, src, destFile, destRank, isEaten){ //returns index in p
                     || (Math.abs(piecePos[x][0] - destFile) == 1 && Math.abs(piecePos[x][1] - destRank) == 2)){
                     return x;
                 }
-            }/*
-            if((Math.abs(piecePos[lower][0] - destFile) == 2 && Math.abs(piecePos[lower][1] - destRank) == 1)
-                || (Math.abs(piecePos[lower][0] - destFile) == 1 && Math.abs(piecePos[lower][1] - destRank) == 2)){
-                return lower;
-            } else if((Math.abs(piecePos[upper][0] - destFile) == 2 && Math.abs(piecePos[upper][1] - destRank) == 1)
-                || (Math.abs(piecePos[upper][0] - destFile) == 1 && Math.abs(piecePos[upper][1] - destRank) == 2)){
-                return upper-1;
-            }*/
+            }
             break;
         case 5: //pawn
             for(var x=lower; x<upper; x++){
                 if(isEaten){ //diagonal
-                    if((destRank - piecePos[x][1] == moveNum%2 ? 1 : -1) && Math.abs(piecePos[x][0] - destFile) == 1){
+                    if(Math.abs(piecePos[x][1] - destRank) == 1 && Math.abs(piecePos[x][0] - destFile) == 1){
                         return x;
                     }
                 } else {
@@ -217,15 +205,18 @@ function getPiece(piece, src, destFile, destRank, isEaten){ //returns index in p
 }
 
 function getNotation(){
-    moves.splice(0,moves.length);
+    resetBoard();
+    moves.splice(0,moves.length); //reset
     var notation = document.getElementById("notation-id").value;
     turns = notation.split("\n");
     console.log(turns);
+    var tmp;
     for(var i=0; i<turns.length; i++){
-        moves = moves.concat(turns[i].split(" "));
+        tmp = turns[i].split(" ");
+        if(tmp.length == 3) tmp.shift();
+        moves = moves.concat(tmp);
     }
     console.log(moves);
-    resetBoard();
 }
 
 function previousMove(){
@@ -282,10 +273,12 @@ function nextMove(){
                     if(piecePos[x][0] == destFile && piecePos[x][1] == 7-destRank) break;
                 }
                 if(x < piecePos.length){
-                    piecePos[x].push(1);
+                    piecePos[x][0] = -1;
+                    piecePos[x][1] = -1;
+
                     console.log(piecePos[x]);
                     //clear the box
-                    clearSquare(piecePos[x][0], piecePos[x][1]);
+                    clearSquare(destFile, 7-destRank);
                 } else {
                     console.log('No piece');
                 }
@@ -298,18 +291,24 @@ function nextMove(){
             if(piecetomove < 0){
                 console.log("Invalid move");
             } else {
-                clearSquare(piecePos[piecetomove][0], piecePos[piecetomove][1]);
                 piecePos[piecetomove][0] = destFile;
                 piecePos[piecetomove][1] = 7-destRank;
             }
         } else { //castle
             console.log("castle");
+            if((moves[moveNum].split("-")).length == 2){ //kingside
+                piecePos[moveNum%2][0] += 2;
+                piecePos[5 + (moveNum%2)*2][0] -= 2;
+            } else { //queenside
+                piecePos[moveNum%2][0] -= 2;
+                piecePos[4 + (moveNum%2)*2][0] += 3;
+            }
         }
     }
     moveNum++;
-    drawPieces(piecePos);
+    ctx.clearRect(0,0,640,640);
+    makeBoard();
+    drawPieces();
 }
-resetBoard();
-window.onload = resetBoard();
 
 console.clear();
