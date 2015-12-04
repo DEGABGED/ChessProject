@@ -85,10 +85,19 @@ function drawPieces(pieces) {
         }
     }
 }
-
+/*f4 e5
+fxe5 d6
+exd6 Bxd6
+g3 Qg5
+Nf3 Qxg3+
+hxg3 Bxg3#*/
 function resetBoard() {
     makeBoard();
     drawPieces(piecePosOrig);
+    for(var x=0; x<piecePos.length; x++){
+        piecePos[x][0] = piecePosOrig[x][0];
+        piecePos[x][1] = piecePosOrig[x][1];
+    }
     moveNum = 0;
 }
 
@@ -300,7 +309,7 @@ function nextMove(){
     moveNum++;
     drawPieces(piecePos);
 }
-
+resetBoard();
 window.onload = resetBoard();
 
 console.clear();
